@@ -1,0 +1,61 @@
+{
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false,
+    "workbench.colorTheme": "Dark+",
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.editor.empty.hint": "hidden",
+
+    "background.windowBackgrounds": [
+        "c:/Users/Nick Vincent Agbuya/Downloads/wall.jpg"
+    ],
+
+    "editor.minimap.autohide": "mouseover",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.suggest.shareSuggestSelections": true,
+    "editor.suggest.preview": true,
+    "editor.suggest.snippetsPreventQuickSuggestions": true,
+    "editor.hover.enabled": "off",
+
+    "editor.inlineSuggest.enabled": true,
+    "editor.inlineSuggest.edits.showCollapsed": false,
+    "editor.inlineSuggest.triggerCommandOnProviderChange": false,
+
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false,
+        "php": true,
+        "jsonc": false,
+        "blade": true,
+        "javascript": true
+    },
+    "github.copilot.inlineSuggest.enable": false,
+    "github.copilot.nextEditSuggestions.enabled": true,
+
+    "phpserver.phpPath": "C:\\laragon\\bin\\php\\php-8.3.26-Win32-vs16-x64\\php.exe",
+    "phpserver.phpConfigPath": "",
+
+    "chat.tools.terminal.autoApprove": {
+        "/^php -l \"c:\\\\laragon\\\\www\\\\Shoes_Store\\\\product-detail\\.php\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "flutter": true,
+        "Set-Content": true,
+        "composer": true
+    },
+
+    "terminal.integrated.suggest.suggestOnTriggerCharacters": true,
+    "chat.viewSessions.orientation": "stacked",
+
+    "[dart]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "editor.rulers": [80],
+        "editor.selectionHighlight": false,
+        "editor.tabCompletion": "onlySnippets",
+        "editor.wordBasedSuggestions": "off"
+    }
+}
