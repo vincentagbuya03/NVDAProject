@@ -1,3 +1,41 @@
+# NVDAProject
+
+## 🚀 Getting Started for the Team
+
+Follow these steps to set up the project on your local machine:
+
+1. **Clone the repository** (if you haven't already):
+   ```bash
+   git clone https://github.com/vincentagbuya03/NVDAProject.git
+   ```
+
+2. **Install PHP Dependencies**:
+   ```bash
+   composer install
+   ```
+
+3. **Install Frontend Dependencies**:
+   ```bash
+   npm install && npm run dev
+   ```
+
+4. **Setup Environment**:
+   *   Copy the example file: `cp .env.example .env`
+   *   Open `.env` and fill in your local **DB_DATABASE**, **DB_USERNAME**, and **DB_PASSWORD**.
+   *   Generate an app key: `php artisan key:generate`
+
+5. **Run Migrations & Seeders**:
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. **Start the Server**:
+   ```bash
+   php artisan serve
+   ```
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
