@@ -143,7 +143,6 @@ $(document).ready(function () {
                 if (response.success) {
                     courseChannel.postMessage("refresh_course_list");
                     showToast(response.message, "success");
-                    window.location.href = response.redirect;
                 }
             },
             error: function (xhr) {
@@ -184,7 +183,6 @@ $(document).ready(function () {
                 if (response.success) {
                     courseChannel.postMessage("refresh_course_list");
                     showToast(response.message, "success");
-                    window.location.href = response.redirect;
                 }
             },
             error: function (xhr) {
