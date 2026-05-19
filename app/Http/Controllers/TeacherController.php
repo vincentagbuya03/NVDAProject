@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\Degree;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class TeacherController extends Controller
 {
@@ -69,7 +70,6 @@ class TeacherController extends Controller
             'address' => ['required', 'string', 'max:500'],
         ]);
 
-        // Create user account with teacher role
         $user = User::create([
             'username' => $validated['username'],
             'email' => $validated['email'],
@@ -81,7 +81,7 @@ class TeacherController extends Controller
         Log::info('Teacher user account created', [
             'user_id' => $user->id,
             'email' => $user->email,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         // Create teacher record linked to user
@@ -190,7 +190,7 @@ class TeacherController extends Controller
         Log::info('Teacher updated', [
             'teacher_id' => $teacher->id,
             'user_id' => $teacher->user_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         if ($request->ajax()) {
@@ -234,7 +234,7 @@ class TeacherController extends Controller
      */
     public function dashboard()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $teacher = Teacher::with(['courses.students'])->where('user_id', $user->id)->firstOrFail();
 
         // Calculate total unique students across all their courses
@@ -249,7 +249,7 @@ class TeacherController extends Controller
      */
     public function courseStudents(string $courseId)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->firstOrFail();
         
         $course = Course::with(['students.user'])
@@ -257,7 +257,6 @@ class TeacherController extends Controller
             ->where('teacher_id', $teacher->id)
             ->firstOrFail();
 
-        // Get enrollment data (grades/status) for these students
         $enrollments = \App\Models\Course_Student::where('course_id', $course->id)->get()->keyBy('student_id');
 
         return view('teacher.course_students', compact('course', 'teacher', 'enrollments'));
@@ -268,7 +267,7 @@ class TeacherController extends Controller
      */
     public function submitGrades(Request $request, string $courseId)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->firstOrFail();
         
         // Security check

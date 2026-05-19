@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
@@ -22,7 +23,7 @@ class ClientController extends Controller
     }
 
     public function clientDashboard() {
-        $user = auth()->user();
+        $user = Auth::user();
         
         // Fetch student record
         $student = \App\Models\Student::where('user_id', $user->id)->first();

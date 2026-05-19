@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Course_Student;
 use App\Models\Student;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -48,7 +49,7 @@ class CourseStudentController extends Controller
             'assignment_id' => $assignment->id,
             'course_id' => $assignment->course_id,
             'student_id' => $assignment->student_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('course_students.index')->with('success', 'Course student assignment created successfully.');
@@ -68,7 +69,7 @@ class CourseStudentController extends Controller
 
         Log::info('Course student assignment edit opened', [
             'assignment_id' => $courseStudent->id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return view('course_student.edit', compact('courseStudent', 'courses', 'students'));
@@ -102,7 +103,7 @@ class CourseStudentController extends Controller
             'assignment_id' => $courseStudent->id,
             'course_id' => $courseStudent->course_id,
             'student_id' => $courseStudent->student_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('course_students.index')->with('success', 'Course student assignment updated successfully.');
@@ -121,7 +122,7 @@ class CourseStudentController extends Controller
             'assignment_id' => $deletedAssignmentId,
             'course_id' => $deletedCourseId,
             'student_id' => $deletedStudentId,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('course_students.index')->with('success', 'Course student assignment deleted successfully.');

@@ -6,6 +6,7 @@ use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
@@ -40,7 +41,7 @@ class ProfileController extends Controller
         Log::info('Profile edit opened', [
             'profile_id' => $profile->id,
             'user_id' => $profile->user_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return view('profile.edit', compact('profile'));
@@ -65,7 +66,7 @@ class ProfileController extends Controller
             'profile_id' => $profile->id,
             'user_id' => $profile->user_id,
             'status' => $profile->status,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('profiles.show', $profile->id)->with('success', 'Profile updated successfully.');
@@ -76,8 +77,8 @@ class ProfileController extends Controller
      */
     public function clientProfile()
     {
-        $profile = Profile::with('user')->where('user_id', auth()->id())->first();
-        $fallbackUser = $profile ? null : auth()->user();
+        $profile = Profile::with('user')->where('user_id', Auth::id())->first();
+        $fallbackUser = $profile ? null : Auth::user();
 
         return view('clientProfile', compact('profile', 'fallbackUser'));
     }

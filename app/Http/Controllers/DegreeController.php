@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class DegreeController extends Controller
 {
@@ -36,7 +37,7 @@ class DegreeController extends Controller
         Log::info('Degree created', [
             'degree_id' => $degree->id,
             'name' => $degree->name,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('degrees.index')->with('success', 'Degree added successfully.');
@@ -46,7 +47,7 @@ class DegreeController extends Controller
     {
         Log::info('Degree edit opened', [
             'degree_id' => $degree->id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return view('degree.editdegree', compact('degree'));
@@ -79,7 +80,7 @@ class DegreeController extends Controller
 
         Log::info('Degree updated', [
             'degree_id' => $degree->id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('degrees.index')->with('success', 'Degree updated successfully.');
@@ -93,7 +94,7 @@ class DegreeController extends Controller
 
         Log::info('Degree deleted', [
             'degree_id' => $deletedDegreeId,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         if ($request->ajax()) {

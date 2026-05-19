@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
@@ -15,15 +16,13 @@ class CourseController extends Controller
     {
         $query = Course::with('degree')->latest();
 
-        // If teacher, only show their courses
-        if (auth()->check() && auth()->user()->role === 'teacher') {
-            $teacher = \App\Models\Teacher::where('user_id', auth()->id())->first();
+        if (Auth::check() && Auth::user()->role === 'teacher') {
+            $teacher = \App\Models\Teacher::where('user_id', Auth::id())->first();
             if ($teacher) {
                 $query->where('teacher_id', $teacher->id);
             }
         }
 
-        // Add search support for courses
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where(function($q) use ($search) {
@@ -49,7 +48,7 @@ class CourseController extends Controller
      */
     public function create()
     {
-        if (auth()->user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -63,7 +62,7 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -80,16 +79,16 @@ class CourseController extends Controller
             'course_id' => $course->id,
             'name' => $course->name,
             'teacher_id' => $course->teacher_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
-        $response = [
-            'success' => true,
-            'message' => 'Course created successfully.',
-            'redirect' => route('courses.index'),
-        ];
-
-        return response()->json($response);
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Course created successfully.',
+                'redirect' => route('courses.index'),
+            ]);
+        }
     }
 
     /**
@@ -106,7 +105,7 @@ class CourseController extends Controller
      */
     public function edit(string $id)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -116,7 +115,7 @@ class CourseController extends Controller
 
         Log::info('Course edit opened', [
             'course_id' => $course->id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
         return view('course.edit', compact('course', 'teachers', 'degrees'));
     }
@@ -126,7 +125,7 @@ class CourseController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -143,7 +142,7 @@ class CourseController extends Controller
         Log::info('Course updated', [
             'course_id' => $course->id,
             'teacher_id' => $course->teacher_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         if ($request->ajax()) {
@@ -160,7 +159,7 @@ class CourseController extends Controller
      */
     public function destroy(Request $request, string $id)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -171,7 +170,7 @@ class CourseController extends Controller
 
         Log::info('Course deleted', [
             'course_id' => $deletedCourseId,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         if ($request->ajax()) {
