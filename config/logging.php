@@ -17,8 +17,8 @@ return [
     | the channels present in the list of "channels" configured below.
     |
     */
-
-    'default' => env('LOG_CHANNEL', 'stack'),
+    //     'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', env('APP_ENV') === 'production' ? 'stderr' : 'stack'),
 
     /*
     |--------------------------------------------------------------------------
