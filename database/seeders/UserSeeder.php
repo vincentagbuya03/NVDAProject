@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Student;
 use App\Models\Degree;
 use App\Models\Profile;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -69,7 +70,7 @@ class UserSeeder extends Seeder
                 'lname' => 'Smith',
                 'email' => $studentUser->email,
                 'contact_no' => '09123456789',
-                'age' => 20,
+                'birthdate' => Carbon::now()->subYears(20)->toDateString(),
                 'gender' => 'Female',
                 'degree_id' => $degree->id,
                 'address' => 'Sample Address',

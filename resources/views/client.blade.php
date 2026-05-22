@@ -30,10 +30,17 @@
                 </thead>
                 <tbody>
                     @forelse ($students as $client)
+                        @php
+                            $displayAge = $client['age'] ?? (
+                                !empty($client['birthdate'])
+                                    ? \Carbon\Carbon::parse($client['birthdate'])->age
+                                    : null
+                            );
+                        @endphp
                         <tr style="border-bottom: 1px solid var(--border-color); transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-main)'" onmouseout="this.style.backgroundColor='transparent'">
                             <td style="padding: 1.25rem 1rem; font-weight: 600;">{{$client['name']}}</td>
                             <td style="padding: 1rem; color: var(--text-muted);">{{$client['sex']}}</td>
-                            <td style="padding: 1rem; color: var(--text-muted);">{{$client['age']}}</td>
+                            <td style="padding: 1rem; color: var(--text-muted);">{{$displayAge ?? 'N/A'}}</td>
                             <td style="padding: 1rem; color: var(--text-muted);">{{$client['city']}}</td>
                             <td style="padding: 1rem;"><span class="badge" style="background: #f0fdf4; color: #22c55e;">Active</span></td>
                         </tr>

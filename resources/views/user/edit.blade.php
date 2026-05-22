@@ -85,9 +85,9 @@
 
                 <div class="form-grid">
                     <div class="field-group">
-                        <label for="age" class="field-label">Age</label>
-                        <input type="number" id="age" name="age" value="{{ old('age', $student->age ?? '') }}" class="field-input" min="1">
-                        @error('age') <p class="field-error">{{ $message }}</p> @enderror
+                        <label for="birthdate" class="field-label">Birthdate</label>
+                        <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate', $student->birthdate ?? '') }}" class="field-input">
+                        @error('birthdate') <p class="field-error">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="field-group">

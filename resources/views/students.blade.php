@@ -25,21 +25,28 @@
         </thead>
         <tbody>
             @foreach($students as $student)
+            @php
+                $displayAge = $student['age'] ?? (
+                    !empty($student['birthdate'])
+                        ? \Carbon\Carbon::parse($student['birthdate'])->age
+                        : null
+                );
+            @endphp
             <tr style="border-bottom: 1px solid #e2e8f0; {{ $loop->even ? 'background-color: #f7fafc;' : '' }}">
                 <td style="padding: 0.75rem 1rem;">{{ $loop->iteration }}</td>
                 <td style="padding: 0.75rem 1rem;">{{ $student['name'] }}</td>
-                <td style="padding: 0.75rem 1rem;">{{ $student['age'] }}</td>
+                <td style="padding: 0.75rem 1rem;">{{ $displayAge ?? 'N/A' }}</td>
                 <td style="padding: 0.75rem 1rem;">{{ $student['course'] }}</td>
                 <td style="padding: 0.75rem 1rem;">
                     
                     
-                    @if($student['age'] == 19)
+                    @if($displayAge == 19)
                         <span style="color: #2b6cb0; font-weight: bold;">Freshman Student</span>
-                    @elseif ($student['age'] == 20)
+                    @elseif ($displayAge == 20)
                         <span style="color: #276749; font-weight: bold;">Sophomore</span>
-                    @elseif ($student['age'] == 21)
+                    @elseif ($displayAge == 21)
                         <span style="color: #b7791f; font-weight: bold;">Junior Student</span>
-                    @elseif ($student['age'] == 22)
+                    @elseif ($displayAge == 22)
                         <span style="color: #c53030; font-weight: bold;">Senior Student</span>
                     @else
                         <span style="color: #744210; font-weight: bold;">Irregular Student</span>

@@ -37,6 +37,12 @@
                         <p class="detail-value">{{ $user->student->fname }} {{ $user->student->mname }} {{ $user->student->lname }}</p>
                     </div>
                     <div class="card detail-card">
+                        <span class="detail-label">Birthdate</span>
+                        <p class="detail-value">
+                            {{ $user->student->birthdate ? \Carbon\Carbon::parse($user->student->birthdate)->format('M d, Y') : 'N/A' }}
+                        </p>
+                    </div>
+                    <div class="card detail-card">
                         <span class="detail-label">Age</span>
                         <p class="detail-value">{{ $user->student->age ?? 'N/A' }}</p>
                     </div>
