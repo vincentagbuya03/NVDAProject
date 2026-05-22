@@ -16,7 +16,22 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => (function () {
+        // Some dashboards introduce invisible Unicode chars in env vars.
+        // Example: "mysql" becomes "mysql\u200B" which breaks resolution.
+        $connection = env('DB_CONNECTION', 'sqlite');
+        if (! is_string($connection)) {
+            return $connection;
+        }
+
+        $sanitized = preg_replace('/\\p{Cf}+/u', '', $connection);
+        if ($sanitized === null) {
+            $sanitized = str_replace(["\u{200B}", "\u{FEFF}"], '', $connection);
+        }
+
+        $sanitized = trim($sanitized);
+        return $sanitized !== '' ? $sanitized : 'sqlite';
+    })(),
 
     /*
     |--------------------------------------------------------------------------
