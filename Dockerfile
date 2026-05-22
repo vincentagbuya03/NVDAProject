@@ -34,5 +34,6 @@ EXPOSE 10000
 
 
 # Start the app using PHP's built-in server on Render's provided $PORT.
-# (Avoid running Artisan during container boot; DB can be verified/migrated separately.)
-CMD sh -c "php -S 0.0.0.0:${PORT:-10000} -t public public/index.php"
+# Use a router script so existing static files under /public (css/js/images)
+# are served directly, while all other requests go through Laravel.
+CMD sh -c "php -S 0.0.0.0:${PORT:-10000} -t public server.php"
