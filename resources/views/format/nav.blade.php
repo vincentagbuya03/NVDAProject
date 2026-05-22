@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Modern CSS -->
-    <link rel="stylesheet" href="{{ asset('css/modern.css') }}">
+    <link rel="stylesheet" href="/css/modern.css">
     
     <style>
         body { font-family: 'Inter', sans-serif; }
