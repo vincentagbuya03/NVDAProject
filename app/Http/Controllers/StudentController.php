@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Client;
 
 use Illuminate\Http\Request;
+use App\Exports\StudentsExport;
 use App\Models\Student;
 use App\Models\Degree;
 use App\Models\User;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 class StudentController extends Controller
 {
     public function index(Request $request){
@@ -187,5 +190,18 @@ class StudentController extends Controller
         }
         
         return redirect()->route('students.index')->with('success', 'Student deleted successfully.');
+    }
+
+    public function export()
+    {
+        return Excel::download(new StudentsExport(), 'students.xlsx');
+    }
+
+    public function exportPdf()
+    {
+        $students = Student::with(['degree'])->orderBy('id')->get();
+
+        return Pdf::loadView('exports.students_pdf', compact('students'))
+            ->download('students.pdf');
     }
 }

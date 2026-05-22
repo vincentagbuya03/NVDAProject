@@ -66,6 +66,11 @@
                     </div>
                 </div>
 
+                <div class="field-group">
+                    <label for="profile_image" class="field-label">Profile Image (optional)</label>
+                    <input type="file" id="profile_image" name="profile_image" class="field-input" accept="image/*">
+                </div>
+
                 <div class="form-grid">
                     <div class="field-group">
                         <label for="birthdate" class="field-label">Birthdate</label>

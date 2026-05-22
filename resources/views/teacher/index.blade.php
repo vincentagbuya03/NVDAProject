@@ -20,6 +20,8 @@
         <div class="page-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
             <div class="page-toolbar-start">
                 <button type="button" class="btn btn-primary" id="btnOpenCreateTeacher" data-url="{{ route('teacher.create') }}">Add New Teacher</button>
+                <a href="{{ route('teacher.export') }}" class="btn btn-secondary">Export Excel</a>
+                <a href="{{ route('teacher.export.pdf') }}" class="btn btn-secondary">Export PDF</a>
             </div>
             <div class="page-toolbar-end" style="flex: 1; max-width: 400px;">
                 <input type="text" id="teacherSearch" class="field-input" placeholder="Search teachers by name or email..." style="margin-bottom: 0;">

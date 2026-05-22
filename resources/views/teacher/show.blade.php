@@ -12,9 +12,17 @@
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
             <!-- Sidebar: Identity Card -->
             <div class="card" style="padding: 2rem; height: fit-content; text-align: center;">
-                <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; font-weight: 700; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-                    {{ substr($teacher->fname, 0, 1) }}{{ substr($teacher->lname, 0, 1) }}
-                </div>
+                @if(!empty($teacher->user?->profile?->image_url))
+                    <img
+                        src="{{ str_starts_with($teacher->user->profile->image_url, 'http') ? $teacher->user->profile->image_url : asset($teacher->user->profile->image_url) }}"
+                        alt="Teacher profile"
+                        style="width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: block;"
+                    >
+                @else
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; font-weight: 700; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                        {{ substr($teacher->fname, 0, 1) }}{{ substr($teacher->lname, 0, 1) }}
+                    </div>
+                @endif
                 <h2 style="margin: 0;">{{ $teacher->fname }} {{ $teacher->lname }}</h2>
                 <p style="color: #666; margin-bottom: 1.5rem;">{{ $teacher->degree->name ?? 'No Degree' }} Department</p>
                 

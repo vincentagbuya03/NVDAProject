@@ -40,7 +40,7 @@
                         @foreach($degrees as $degree)
                             <option value="{{ $degree->id }}" {{ old('degree_id', $course->degree_id) == $degree->id ? 'selected' : '' }}>
                                 {{ $degree->name }} ({{ $degree->code }})
-                            </option>
+                            </option>   
                         @endforeach
                     </select>
                     @error('degree_id') <p class="field-error">{{ $message }}</p> @enderror

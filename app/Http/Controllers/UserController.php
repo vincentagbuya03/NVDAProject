@@ -6,6 +6,7 @@ use App\Models\Profile;
 use App\Models\User;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -58,7 +59,7 @@ class UserController extends Controller
         Log::info('User created', [
             'user_id' => $user->id,
             'email' => $user->email,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         // Create student record with all required fields (now guaranteed by validation)
@@ -112,7 +113,7 @@ class UserController extends Controller
 
         Log::info('User edit opened', [
             'user_id' => $user->id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return view('user.edit', compact('user'));
@@ -172,7 +173,7 @@ class UserController extends Controller
         Log::info('User updated', [
             'user_id' => $user->id,
             'email' => $user->email,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
@@ -192,7 +193,7 @@ class UserController extends Controller
         Log::info('User deleted', [
             'user_id' => $deletedUserId,
             'email' => $deletedEmail,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         if ($request->ajax()) {

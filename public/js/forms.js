@@ -18,16 +18,59 @@ $(document).ready(function () {
 
         button.prop("disabled", true).text("Processing...");
 
-        let data = container.find(":input").serialize();
+        const hasFileInput = container.find('input[type="file"]').length > 0;
+        const ajaxOptions = {
+            url: url,
+            type: "POST",
+        };
 
-        if (["PUT", "PATCH", "DELETE"].includes(method.toUpperCase())) {
-            data += `&_method=${method.toUpperCase()}`;
+        if (hasFileInput) {
+            const formData = new FormData();
+
+            container.find(":input[name]").each(function () {
+                const el = this;
+                const $el = $(this);
+                const name = $el.attr("name");
+
+                if (!name) return;
+
+                if (el.type === "file") {
+                    if (el.files && el.files.length > 0) {
+                        formData.append(name, el.files[0]);
+                    }
+                    return;
+                }
+
+                if (el.type === "checkbox") {
+                    if (el.checked) formData.append(name, $el.val());
+                    return;
+                }
+
+                if (el.type === "radio") {
+                    if (el.checked) formData.append(name, $el.val());
+                    return;
+                }
+
+                formData.append(name, $el.val());
+            });
+
+            if (["PUT", "PATCH", "DELETE"].includes(method.toUpperCase())) {
+                formData.append("_method", method.toUpperCase());
+            }
+
+            ajaxOptions.data = formData;
+            ajaxOptions.processData = false;
+            ajaxOptions.contentType = false;
+        } else {
+            let data = container.find(":input").serialize();
+            if (["PUT", "PATCH", "DELETE"].includes(method.toUpperCase())) {
+                data += `&_method=${method.toUpperCase()}`;
+            }
+            ajaxOptions.data = data;
         }
 
         $.ajax({
-            url: url,
-            type: "POST",
-            data: data,
+            ...ajaxOptions,
             success: function (response) {
                 if (response.success) {
                     const teacherSection = $("#teacherIndexSection");
@@ -111,10 +154,23 @@ $(document).ready(function () {
 
             button.prop("disabled", true).text("Processing...");
 
-            $.ajax({
+            const hasFileInput = form.find('input[type="file"]').length > 0;
+            const ajaxOptions = {
                 url: url,
                 type: "POST",
-                data: form.serialize(),
+            };
+
+            if (hasFileInput) {
+                const formData = new FormData(form[0]);
+                ajaxOptions.data = formData;
+                ajaxOptions.processData = false;
+                ajaxOptions.contentType = false;
+            } else {
+                ajaxOptions.data = form.serialize();
+            }
+
+            $.ajax({
+                ...ajaxOptions,
                 success: function (response) {
                     if (response.success) {
                         window.location.href = response.redirect;

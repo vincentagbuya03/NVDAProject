@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\CalculateController;
 use App\Http\Controllers\PSUController;
@@ -57,7 +58,13 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/maintenance-manager', [MaintenanceController::class, 'index'])->name('maintenance-manager.index');
         Route::post('/maintenance-manager', [MaintenanceController::class, 'update'])->name('maintenance-manager.update');
+
+        Route::get('/students/export', [StudentController::class, 'export'])->name('students.export');
+        Route::get('/students/export/pdf', [StudentController::class, 'exportPdf'])->name('students.export.pdf');
         Route::resource('/students', StudentController::class);
+
+        Route::get('/teacher/export', [TeacherController::class, 'export'])->name('teacher.export');
+        Route::get('/teacher/export/pdf', [TeacherController::class, 'exportPdf'])->name('teacher.export.pdf');
         Route::resource('/degrees', DegreeController::class)->except(['show']);
         Route::resource('/users', UserController::class);
         Route::resource('/course_students', CourseStudentController::class);

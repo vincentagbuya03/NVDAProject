@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Exports\TeachersExport;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\Profile;
 use App\Models\Course;
 use App\Models\Degree;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class TeacherController extends Controller
 {
@@ -67,6 +74,7 @@ class TeacherController extends Controller
             'contact_no' => ['required', 'string', 'max:20'],
             'degree_id' => ['required', 'exists:degrees,id'],
             'address' => ['required', 'string', 'max:500'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         // Create user account with teacher role
@@ -81,7 +89,7 @@ class TeacherController extends Controller
         Log::info('Teacher user account created', [
             'user_id' => $user->id,
             'email' => $user->email,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         // Create teacher record linked to user
@@ -98,11 +106,16 @@ class TeacherController extends Controller
             'address' => $validated['address'],
         ]);
 
+        $profileImageUrl = null;
+        if ($request->hasFile('profile_image')) {
+            $profileImageUrl = $this->storeTeacherProfileImage($request->file('profile_image'), $user->id);
+        }
+
         // Create profile record for the teacher
         Profile::create([
             'user_id' => $user->id,
             'bio' => null,
-            'image_url' => null,
+            'image_url' => $profileImageUrl,
             'status' => 'active',
         ]);
 
@@ -127,7 +140,7 @@ class TeacherController extends Controller
      */
     public function show(string $id)
     {
-        $teacher = Teacher::with('user')->findOrFail($id);
+        $teacher = Teacher::with(['user.profile', 'degree'])->findOrFail($id);
         return view('teacher.show', compact('teacher'));
     }
 
@@ -136,7 +149,7 @@ class TeacherController extends Controller
      */
     public function edit(string $id)
     {
-        $teacher = Teacher::with('user')->findOrFail($id);
+        $teacher = Teacher::with('user.profile')->findOrFail($id);
         $degrees = Degree::all();
         return view('teacher.edit', compact('teacher', 'degrees'));
     }
@@ -160,6 +173,7 @@ class TeacherController extends Controller
             'contact_no' => ['required', 'string', 'max:20'],
             'degree_id' => ['required', 'exists:degrees,id'],
             'address' => ['required', 'string', 'max:500'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         // Update user account
@@ -187,10 +201,18 @@ class TeacherController extends Controller
             'address' => $validated['address'],
         ]);
 
+        if ($request->hasFile('profile_image')) {
+            $profileImageUrl = $this->storeTeacherProfileImage($request->file('profile_image'), $teacher->user_id);
+            Profile::updateOrCreate(
+                ['user_id' => $teacher->user_id],
+                ['image_url' => $profileImageUrl, 'status' => 'active']
+            );
+        }
+
         Log::info('Teacher updated', [
             'teacher_id' => $teacher->id,
             'user_id' => $teacher->user_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         if ($request->ajax()) {
@@ -234,7 +256,7 @@ class TeacherController extends Controller
      */
     public function dashboard()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $teacher = Teacher::with(['courses.students'])->where('user_id', $user->id)->firstOrFail();
 
         // Calculate total unique students across all their courses
@@ -249,7 +271,7 @@ class TeacherController extends Controller
      */
     public function courseStudents(string $courseId)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->firstOrFail();
         
         $course = Course::with(['students.user'])
@@ -268,7 +290,7 @@ class TeacherController extends Controller
      */
     public function submitGrades(Request $request, string $courseId)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->firstOrFail();
         
         // Security check
@@ -289,5 +311,37 @@ class TeacherController extends Controller
         }
 
         return redirect()->back()->with('success', 'Grades and statuses updated successfully.');
+    }
+
+    public function export()
+    {
+        return Excel::download(new TeachersExport(), 'teachers.xlsx');
+    }
+
+    public function exportPdf()
+    {
+        $teachers = Teacher::with(['degree'])->orderBy('id')->get();
+
+        return Pdf::loadView('exports.teachers_pdf', compact('teachers'))
+            ->download('teachers.pdf');
+    }
+
+    private function storeTeacherProfileImage($uploadedFile, int $userId): string
+    {
+        $directory = public_path('uploads/teacher-profiles');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = 'teacher_' . $userId . '_' . Str::uuid() . '.jpg';
+        $path = $directory . DIRECTORY_SEPARATOR . $filename;
+
+        $manager = new ImageManager(new Driver());
+        $image = $manager->read($uploadedFile->getPathname())
+            ->cover(400, 400);
+
+        $image->toJpeg(85)->save($path);
+
+        return 'uploads/teacher-profiles/' . $filename;
     }
 }

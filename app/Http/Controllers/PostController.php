@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
@@ -17,12 +18,12 @@ class PostController extends Controller
 
     public function create()
     {
-        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+        if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
             abort(403, 'Unauthorized action.');
         }
 
         $users = [];
-        if (auth()->user()->role === 'admin') {
+        if (Auth::user()?->role === 'admin') {
             $users = User::with('student')->get();
         }
         
@@ -31,19 +32,19 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+        if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
             abort(403, 'Unauthorized action.');
         }
 
         $validated = $request->validate([
-            'user_id' => [auth()->user()->role === 'admin' ? 'required' : 'nullable', 'exists:users,id'],
+            'user_id' => [Auth::user()?->role === 'admin' ? 'required' : 'nullable', 'exists:users,id'],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
         ]);
 
         // Auto-assign user_id if not an admin or if not provided
-        if (auth()->user()->role !== 'admin' || !isset($validated['user_id'])) {
-            $validated['user_id'] = auth()->id();
+        if (Auth::user()?->role !== 'admin' || !isset($validated['user_id'])) {
+            $validated['user_id'] = Auth::id();
         }
 
         $post = Post::create($validated);
@@ -51,7 +52,7 @@ class PostController extends Controller
         Log::info('Post created', [
             'post_id' => $post->id,
             'user_id' => $post->user_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('posts.index')->with('success', 'Post created successfully.');
@@ -65,7 +66,7 @@ class PostController extends Controller
 
     public function edit(string $id)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+        if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -74,7 +75,7 @@ class PostController extends Controller
 
         Log::info('Post edit opened', [
             'post_id' => $post->id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return view('post.edit', compact('post', 'users'));
@@ -82,7 +83,7 @@ class PostController extends Controller
 
     public function update(Request $request, string $id)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+        if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -98,7 +99,7 @@ class PostController extends Controller
         Log::info('Post updated', [
             'post_id' => $post->id,
             'user_id' => $post->user_id,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         return redirect()->route('posts.index')->with('success', 'Post updated successfully.');
@@ -106,7 +107,7 @@ class PostController extends Controller
 
     public function destroy(Request $request, string $id)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+        if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -117,7 +118,7 @@ class PostController extends Controller
 
         Log::info('Post deleted', [
             'post_id' => $deletedPostId,
-            'actor_id' => auth()->id(),
+            'actor_id' => Auth::id(),
         ]);
 
         if ($request->ajax()) {

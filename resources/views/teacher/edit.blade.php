@@ -63,6 +63,16 @@
                     </div>
                 </div>
 
+                <div class="field-group">
+                    <label for="profile_image" class="field-label">Profile Image (optional)</label>
+                    @if(!empty($teacher->user?->profile?->image_url))
+                        <div style="margin-bottom: 0.75rem;">
+                            <img src="{{ str_starts_with($teacher->user->profile->image_url, 'http') ? $teacher->user->profile->image_url : asset($teacher->user->profile->image_url) }}" alt="Teacher profile" style="width: 96px; height: 96px; border-radius: 999px; object-fit: cover;">
+                        </div>
+                    @endif
+                    <input type="file" id="profile_image" name="profile_image" class="field-input" accept="image/*">
+                </div>
+
                 <div class="form-grid">
                     <div class="field-group">
                         <label for="birthdate" class="field-label">Birthdate</label>
