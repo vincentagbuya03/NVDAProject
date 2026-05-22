@@ -33,7 +33,4 @@ EXPOSE 10000
 
 
 
-# Start the app using PHP's built-in server on Render's provided $PORT.
-# Use a router script so existing static files under /public (css/js/images)
-# are served directly, while all other requests go through Laravel.
-CMD sh -c "php -S 0.0.0.0:${PORT:-10000} -t public server.php"
+CMD sh -c "php artisan migrate --force && php artisan db:seed --class=UserSeeder --force && php -S 0.0.0.0:${PORT:-10000} -t public server.php"
