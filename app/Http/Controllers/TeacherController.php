@@ -12,15 +12,11 @@ use App\Models\Degree;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-<<<<<<< HEAD
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
-=======
-use Illuminate\Support\Facades\Auth;
->>>>>>> origin/main
 
 class TeacherController extends Controller
 {

@@ -6,7 +6,6 @@ use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
@@ -17,12 +16,8 @@ class CourseController extends Controller
     {
         $query = Course::with('degree')->latest();
 
-<<<<<<< HEAD
         // If teacher, only show their courses
-        if (Auth::check() && Auth::user()?->role === 'teacher') {
-=======
         if (Auth::check() && Auth::user()->role === 'teacher') {
->>>>>>> origin/main
             $teacher = \App\Models\Teacher::where('user_id', Auth::id())->first();
             if ($teacher) {
                 $query->where('teacher_id', $teacher->id);
@@ -54,11 +49,7 @@ class CourseController extends Controller
      */
     public function create()
     {
-<<<<<<< HEAD
-        if (Auth::user()?->role !== 'admin') {
-=======
         if (Auth::user()->role !== 'admin') {
->>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
@@ -72,11 +63,7 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
-<<<<<<< HEAD
-        if (Auth::user()?->role !== 'admin') {
-=======
         if (Auth::user()->role !== 'admin') {
->>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
@@ -119,11 +106,7 @@ class CourseController extends Controller
      */
     public function edit(string $id)
     {
-<<<<<<< HEAD
-        if (Auth::user()?->role !== 'admin') {
-=======
         if (Auth::user()->role !== 'admin') {
->>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
@@ -143,11 +126,7 @@ class CourseController extends Controller
      */
     public function update(Request $request, string $id)
     {
-<<<<<<< HEAD
-        if (Auth::user()?->role !== 'admin') {
-=======
         if (Auth::user()->role !== 'admin') {
->>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
@@ -181,11 +160,7 @@ class CourseController extends Controller
      */
     public function destroy(Request $request, string $id)
     {
-<<<<<<< HEAD
-        if (Auth::user()?->role !== 'admin') {
-=======
         if (Auth::user()->role !== 'admin') {
->>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
