@@ -19,7 +19,7 @@ class Teacher extends Model
         'user_id',
         'address',
     ];
-
+    // I did this        
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
