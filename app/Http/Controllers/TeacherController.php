@@ -12,11 +12,15 @@ use App\Models\Degree;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+<<<<<<< HEAD
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+=======
+use Illuminate\Support\Facades\Auth;
+>>>>>>> origin/main
 
 class TeacherController extends Controller
 {
@@ -77,7 +81,6 @@ class TeacherController extends Controller
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        // Create user account with teacher role
         $user = User::create([
             'username' => $validated['username'],
             'email' => $validated['email'],
@@ -279,7 +282,6 @@ class TeacherController extends Controller
             ->where('teacher_id', $teacher->id)
             ->firstOrFail();
 
-        // Get enrollment data (grades/status) for these students
         $enrollments = \App\Models\Course_Student::where('course_id', $course->id)->get()->keyBy('student_id');
 
         return view('teacher.course_students', compact('course', 'teacher', 'enrollments'));

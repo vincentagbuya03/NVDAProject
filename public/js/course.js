@@ -4,15 +4,42 @@
  */
 
 $(document).ready(function () {
+    // Lightweight non-blocking toast for notifications (replaces alert())
+    window.showToast = function (message, type = "success") {
+        const colors = {
+            success: "#4f46e5",
+            error: "#ef4444",
+            info: "#374151",
+        };
+
+        const toast = $(
+            `<div class="nvda-toast" role="status" aria-live="polite" style="display:none; position:fixed; right:20px; top:20px; z-index:99999; min-width:200px; max-width:360px; padding:12px 16px; color:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(15,23,42,0.2); font-weight:600;"></div>`,
+        );
+
+        toast.css("background", colors[type] || colors.info);
+        toast.text(message);
+        $("body").append(toast);
+        toast
+            .fadeIn(150)
+            .delay(2500)
+            .fadeOut(300, function () {
+                $(this).remove();
+            });
+    };
     // 1. Initialize the broadcast channel for cross-tab communication
-    const courseChannel = new BroadcastChannel('course_sync');
+    const courseChannel = new BroadcastChannel("course_sync");
 
     // 2. Listen for refresh signals from other tabs
     courseChannel.onmessage = (event) => {
-        if (event.data === 'refresh_course_list') {
+        if (event.data === "refresh_course_list") {
             // If the user is on the courses index page, refresh the list via AJAX
-            if ($("#courseIndexSection").length && typeof fetchCourses === "function") {
-                fetchCourses($("#courseIndexSection").data("url"), { quiet: true });
+            if (
+                $("#courseIndexSection").length &&
+                typeof fetchCourses === "function"
+            ) {
+                fetchCourses($("#courseIndexSection").data("url"), {
+                    quiet: true,
+                });
             }
         }
     };
@@ -39,7 +66,9 @@ $(document).ready(function () {
                         const showUrl = `/courses/${course.id}`;
                         const editUrl = `/courses/${course.id}/edit`;
                         const destroyUrl = `/courses/${course.id}`;
-                        const degreeName = course.degree ? course.degree.name : "N/A";
+                        const degreeName = course.degree
+                            ? course.degree.name
+                            : "N/A";
 
                         html += `
                             <tr>
@@ -58,15 +87,18 @@ $(document).ready(function () {
                         `;
                     });
                 } else {
-                    html = '<tr><td colspan="5" class="empty-state">No courses found.</td></tr>';
+                    html =
+                        '<tr><td colspan="5" class="empty-state">No courses found.</td></tr>';
                 }
 
                 tableBody.html(html).css("opacity", "1");
-                $("#totalCoursesBadge").text(`Total Courses: ${response.total}`);
+                $("#totalCoursesBadge").text(
+                    `Total Courses: ${response.total}`,
+                );
             },
             error: function () {
                 tableBody.css("opacity", "1");
-                if (!quiet) alert("Failed to fetch course data.");
+                if (!quiet) showToast("Failed to fetch course data.", "error");
             },
         });
     };
@@ -92,14 +124,14 @@ $(document).ready(function () {
     // 4. Form Actions (Save/Update)
     $("#save_courses").click(function (event) {
         event.preventDefault();
-        
+
         var name = $("#name").val();
         var description = $("#description").val();
         var degree_id = $("#degree_id").val();
         var teacher_id = $("#teacher_id").val();
-        
+
         $.ajax({
-            url: "/courses", 
+            url: "/courses",
             method: "POST",
             data: {
                 name: name,
@@ -109,35 +141,40 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response.success) {
-                    courseChannel.postMessage('refresh_course_list');
-                    alert(response.message);
-                    window.location.href = response.redirect;
+                    courseChannel.postMessage("refresh_course_list");
+                    showToast(response.message, "success");
+                    setTimeout(function () {
+                        window.location.href = response.redirect;
+                    }, 500);
                 }
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
                     var firstError = Object.values(errors)[0][0];
-                    alert(firstError);
+                    showToast(firstError, "error");
                 } else {
-                    alert("Something went wrong. Please try again.");
+                    showToast(
+                        "Something went wrong. Please try again.",
+                        "error",
+                    );
                 }
-            }
+            },
         });
     });
 
     $("#update_courses").click(function (event) {
         event.preventDefault();
-        
+
         var id = $(this).data("id");
         var name = $("#name").val();
         var description = $("#description").val();
         var degree_id = $("#degree_id").val();
         var teacher_id = $("#teacher_id").val();
-        
+
         $.ajax({
             url: "/courses/" + id,
-            method: "POST", 
+            method: "POST",
             data: {
                 _method: "PUT",
                 name: name,
@@ -147,25 +184,33 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response.success) {
-                    courseChannel.postMessage('refresh_course_list');
-                    alert(response.message);
-                    window.location.href = response.redirect;
+                    courseChannel.postMessage("refresh_course_list");
+                    showToast(response.message, "success");
+                    setTimeout(function () {
+                        window.location.href = response.redirect;
+                    }, 500);
                 }
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
                     var firstError = Object.values(errors)[0][0];
-                    alert(firstError);
+                    showToast(firstError, "error");
                 } else {
-                    alert("Something went wrong. Please try again.");
+                    showToast(
+                        "Something went wrong. Please try again.",
+                        "error",
+                    );
                 }
-            }
+            },
         });
     });
 
     // Initialize Delete
     if (typeof handleAjaxDelete === "function") {
-        handleAjaxDelete(".btn-delete-course", "Are you sure you want to delete this course?");
+        handleAjaxDelete(
+            ".btn-delete-course",
+            "Are you sure you want to delete this course?",
+        );
     }
 });

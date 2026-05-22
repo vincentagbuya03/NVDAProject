@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -18,12 +19,20 @@ class PostController extends Controller
 
     public function create()
     {
+<<<<<<< HEAD
         if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
+=======
+        if (!in_array(Auth::user()->role, ['admin', 'teacher'])) {
+>>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
         $users = [];
+<<<<<<< HEAD
         if (Auth::user()?->role === 'admin') {
+=======
+        if (Auth::user()->role === 'admin') {
+>>>>>>> origin/main
             $users = User::with('student')->get();
         }
         
@@ -32,18 +41,30 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
+<<<<<<< HEAD
         if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
+=======
+        if (!in_array(Auth::user()->role, ['admin', 'teacher'])) {
+>>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
         $validated = $request->validate([
+<<<<<<< HEAD
             'user_id' => [Auth::user()?->role === 'admin' ? 'required' : 'nullable', 'exists:users,id'],
+=======
+            'user_id' => [Auth::user()->role === 'admin' ? 'required' : 'nullable', 'exists:users,id'],
+>>>>>>> origin/main
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
         ]);
 
         // Auto-assign user_id if not an admin or if not provided
+<<<<<<< HEAD
         if (Auth::user()?->role !== 'admin' || !isset($validated['user_id'])) {
+=======
+        if (Auth::user()->role !== 'admin' || !isset($validated['user_id'])) {
+>>>>>>> origin/main
             $validated['user_id'] = Auth::id();
         }
 
@@ -66,7 +87,11 @@ class PostController extends Controller
 
     public function edit(string $id)
     {
+<<<<<<< HEAD
         if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
+=======
+        if (!in_array(Auth::user()->role, ['admin', 'teacher'])) {
+>>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
@@ -83,7 +108,11 @@ class PostController extends Controller
 
     public function update(Request $request, string $id)
     {
+<<<<<<< HEAD
         if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
+=======
+        if (!in_array(Auth::user()->role, ['admin', 'teacher'])) {
+>>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
@@ -107,7 +136,11 @@ class PostController extends Controller
 
     public function destroy(Request $request, string $id)
     {
+<<<<<<< HEAD
         if (!in_array(Auth::user()?->role, ['admin', 'teacher'], true)) {
+=======
+        if (!in_array(Auth::user()->role, ['admin', 'teacher'])) {
+>>>>>>> origin/main
             abort(403, 'Unauthorized action.');
         }
 
