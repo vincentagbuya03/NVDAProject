@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Student;
+use App\Models\Degree;
 use App\Models\Profile;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -52,16 +53,25 @@ class UserSeeder extends Seeder
         );
         Profile::updateOrCreate(['user_id' => $studentUser->id], ['status' => 'active']);
 
+        $degree = Degree::firstOrCreate(
+            ['code' => 'BSIT'],
+            [
+                'name' => 'Bachelor of Science in Information Technology',
+                'department' => 'Computer Science',
+            ]
+        );
+
         Student::updateOrCreate(
             ['user_id' => $studentUser->id],
             [
                 'fname' => 'Jane',
                 'mname' => 'Marie',
                 'lname' => 'Smith',
+                'email' => $studentUser->email,
                 'contact_no' => '09123456789',
                 'age' => 20,
                 'gender' => 'Female',
-                'degree_id' => 1,
+                'degree_id' => $degree->id,
                 'address' => 'Sample Address',
             ]
         );

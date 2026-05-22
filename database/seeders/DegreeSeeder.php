@@ -13,19 +13,16 @@ class DegreeSeeder extends Seeder
      */
     public function run(): void
     {
-        Degree::create([
+        Degree::updateOrCreate(['code' => 'BSIT'], [
             'name' => 'Bachelor of Science in Information Technology',
-            'code' => 'BSIT',
             'department' => 'Computer Science'
         ]);
-        Degree::create([
+        Degree::updateOrCreate(['code' => 'BSCS'], [
             'name' => 'Bachelor of Science in Computer Science',
-            'code' => 'BSCS',
             'department' => 'Computer Science'
         ]);
-        Degree::create([
+        Degree::updateOrCreate(['code' => 'BSED'], [
             'name' => 'Bachelor of Science in Education',
-            'code' => 'BSED',
             'department' => 'Education'
         ]);
     }
