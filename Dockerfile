@@ -4,10 +4,9 @@ FROM php:8.4-fpm
 
 
 RUN apt-get update && apt-get install -y \
-
-git unzip curl libzip-dev zip libpng-dev \
-
-&& docker-php-ext-install pdo pdo_mysql zip
+	git unzip curl libzip-dev zip libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+	&& docker-php-ext-configure gd --with-freetype --with-jpeg \
+	&& docker-php-ext-install pdo pdo_mysql zip gd
 
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -23,6 +22,7 @@ WORKDIR /var/www
 COPY . .
 
 
+# RUN composer install --no-dev --optimize-autoloader
 RUN composer install --no-dev -o
 
 
