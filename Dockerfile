@@ -33,8 +33,6 @@ EXPOSE 10000
 
 
 
-# CMD php artisan serve --host=0.0.0.0 --port=10000
-
-CMD sh -c "php artisan config:clear && php artisan cache:clear; \
-    php artisan migrate --force --no-interaction || echo 'MIGRATE_FAILED: check DB_* env vars / DB connectivity'; \
-    exec php artisan serve --host=0.0.0.0 --port=\"$PORT\""
+# Start the app using PHP's built-in server on Render's provided $PORT.
+# (Avoid running Artisan during container boot; DB can be verified/migrated separately.)
+CMD sh -c "php -S 0.0.0.0:${PORT:-10000} -t public public/index.php"
