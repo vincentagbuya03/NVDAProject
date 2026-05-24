@@ -74,6 +74,7 @@
     </div>
     
     @section('extra-js')
+        <script src="{{ asset('js/forms.js') }}"></script>
         <script src="{{ asset('js/table-utils.js') }}"></script>
         <script src="{{ asset('js/student-table.js') }}"></script>
     @endsection

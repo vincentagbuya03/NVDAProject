@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\Auth;
 
 class DegreeController extends Controller
 {
