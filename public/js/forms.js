@@ -8,6 +8,26 @@ $(document).ready(function () {
 
         if (!container.length) return;
 
+        const fields = container.find("input, select, textarea").filter(function () {
+            return !this.disabled && this.type !== "hidden" && this.type !== "button";
+        });
+
+        let firstInvalidField = null;
+        fields.each(function () {
+            if (typeof this.checkValidity === "function" && !this.checkValidity()) {
+                firstInvalidField = firstInvalidField || this;
+                return false;
+            }
+        });
+
+        if (firstInvalidField) {
+            if (typeof firstInvalidField.reportValidity === "function") {
+                firstInvalidField.reportValidity();
+            }
+            firstInvalidField.focus();
+            return;
+        }
+
         const url = container.data("url");
         const method = container.data("method") || "POST";
         const buttonText = button.text();

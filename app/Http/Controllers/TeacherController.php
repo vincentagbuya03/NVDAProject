@@ -12,9 +12,12 @@ use App\Models\Degree;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 
@@ -62,9 +65,9 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'username' => ['required', 'string', 'min:3', 'max:255', 'unique:users,username'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:teachers,email'],
             'password' => ['required', 'string', 'min:8'],
             'fname' => ['required', 'string', 'max:255'],
             'mname' => ['nullable', 'string', 'max:255'],
@@ -77,46 +80,81 @@ class TeacherController extends Controller
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $user = User::create([
-            'username' => $validated['username'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => 'teacher',
-            'force_password_change' => true,
-        ]);
+        if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
 
-        Log::info('Teacher user account created', [
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'actor_id' => Auth::id(),
-        ]);
-
-        // Create teacher record linked to user
-        Teacher::create([
-            'user_id' => $user->id,
-            'fname' => $validated['fname'],
-            'mname' => $validated['mname'] ?? '',
-            'lname' => $validated['lname'],
-            'email' => $validated['email'],
-            'birthdate' => $validated['birthdate'],
-            'gender' => $validated['gender'],
-            'contact_no' => $validated['contact_no'],
-            'degree_id' => $validated['degree_id'],
-            'address' => $validated['address'],
-        ]);
-
-        $profileImageUrl = null;
-        if ($request->hasFile('profile_image')) {
-            $profileImageUrl = $this->storeTeacherProfileImage($request->file('profile_image'), $user->id);
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Create profile record for the teacher
-        Profile::create([
-            'user_id' => $user->id,
-            'bio' => null,
-            'image_url' => $profileImageUrl,
-            'status' => 'active',
-        ]);
+        $validated = $validator->validated();
+
+        $user = null;
+        $teacher = null;
+
+        DB::transaction(function () use ($request, $validated, &$user, &$teacher) {
+            $user = User::create([
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'teacher',
+                'is_active' => true,
+                'force_password_change' => true,
+            ]);
+
+            Log::info('Teacher user account created', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'actor_id' => Auth::id(),
+            ]);
+
+            $teacher = Teacher::create([
+                'user_id' => $user->id,
+                'fname' => $validated['fname'],
+                'mname' => $validated['mname'] ?? '',
+                'lname' => $validated['lname'],
+                'email' => $validated['email'],
+                'birthdate' => $validated['birthdate'],
+                'gender' => $validated['gender'],
+                'contact_no' => $validated['contact_no'],
+                'degree_id' => $validated['degree_id'],
+                'address' => $validated['address'],
+            ]);
+
+            $profileImageUrl = null;
+            if ($request->hasFile('profile_image')) {
+                $profileImageUrl = $this->storeTeacherProfileImage($request->file('profile_image'), $user->id);
+            }
+
+            Profile::create([
+                'user_id' => $user->id,
+                'bio' => null,
+                'image_url' => $profileImageUrl,
+                'status' => 'active',
+            ]);
+        });
+
+        if (!$user instanceof User) {
+            Log::error('Teacher user creation failed (user is null after transaction).', [
+                'email' => $validated['email'] ?? null,
+                'actor_id' => Auth::id(),
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to create teacher account. Please try again.',
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors([
+                'error' => 'Unable to create teacher account. Please try again.',
+            ])->withInput();
+        }
 
         Log::info('Teacher record created', [
             'user_id' => $user->id,
@@ -158,11 +196,23 @@ class TeacherController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $teacher = Teacher::with('user')->findOrFail($id);
+        $teacher = Teacher::with('user.profile')->findOrFail($id);
 
-        $validated = $request->validate([
-            'username' => ['required', 'string', 'min:3', 'max:255', 'unique:users,username,' . $teacher->user_id],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $teacher->user_id],
+        $validator = Validator::make($request->all(), [
+            'username' => [
+                'required',
+                'string',
+                'min:3',
+                'max:255',
+                Rule::unique('users', 'username')->ignore($teacher->user_id),
+            ],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($teacher->user_id),
+                Rule::unique('teachers', 'email')->ignore($teacher->id),
+            ],
             'password' => ['nullable', 'string', 'min:8'],
             'fname' => ['required', 'string', 'max:255'],
             'mname' => ['nullable', 'string', 'max:255'],
@@ -175,38 +225,73 @@ class TeacherController extends Controller
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        // Update user account
-        if ($teacher->user) {
-            $teacher->user->username = $validated['username'];
-            $teacher->user->email = $validated['email'];
-
-            if (!empty($validated['password'])) {
-                $teacher->user->password = Hash::make($validated['password']);
+        if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
             }
 
-            $teacher->user->save();
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Update teacher record
-        $teacher->update([
-            'fname' => $validated['fname'],
-            'mname' => $validated['mname'] ?? '',
-            'lname' => $validated['lname'],
-            'email' => $validated['email'],
-            'birthdate' => $validated['birthdate'],
-            'gender' => $validated['gender'],
-            'contact_no' => $validated['contact_no'],
-            'degree_id' => $validated['degree_id'],
-            'address' => $validated['address'],
-        ]);
+        $validated = $validator->validated();
 
-        if ($request->hasFile('profile_image')) {
-            $profileImageUrl = $this->storeTeacherProfileImage($request->file('profile_image'), $teacher->user_id);
-            Profile::updateOrCreate(
-                ['user_id' => $teacher->user_id],
-                ['image_url' => $profileImageUrl, 'status' => 'active']
-            );
-        }
+        DB::transaction(function () use ($request, $teacher, $validated) {
+            $user = $teacher->user;
+
+            if (! $user) {
+                $user = User::create([
+                    'username' => $validated['username'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password'] ?: Str::random(12)),
+                    'role' => 'teacher',
+                    'is_active' => true,
+                    'force_password_change' => true,
+                ]);
+
+                $teacher->user_id = $user->id;
+            } else {
+                $user->username = $validated['username'];
+                $user->email = $validated['email'];
+                $user->role = 'teacher';
+                $user->is_active = true;
+
+                if (!empty($validated['password'])) {
+                    $user->password = Hash::make($validated['password']);
+                    $user->force_password_change = true;
+                }
+
+                $user->save();
+            }
+
+            $teacher->fill([
+                'fname' => $validated['fname'],
+                'mname' => $validated['mname'] ?? '',
+                'lname' => $validated['lname'],
+                'email' => $validated['email'],
+                'birthdate' => $validated['birthdate'],
+                'gender' => $validated['gender'],
+                'contact_no' => $validated['contact_no'],
+                'degree_id' => $validated['degree_id'],
+                'address' => $validated['address'],
+            ]);
+            $teacher->save();
+
+            if ($request->hasFile('profile_image')) {
+                $profileImageUrl = $this->storeTeacherProfileImage($request->file('profile_image'), $teacher->user_id);
+                Profile::updateOrCreate(
+                    ['user_id' => $teacher->user_id],
+                    ['image_url' => $profileImageUrl, 'status' => 'active']
+                );
+            } elseif (! $user->profile) {
+                Profile::updateOrCreate(
+                    ['user_id' => $teacher->user_id],
+                    ['bio' => null, 'image_url' => null, 'status' => 'active']
+                );
+            }
+        });
 
         Log::info('Teacher updated', [
             'teacher_id' => $teacher->id,

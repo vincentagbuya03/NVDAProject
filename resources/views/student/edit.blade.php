@@ -29,7 +29,7 @@
 
                     <div class="field-group">
                         <label for="mname" class="field-label">Middle Name</label>
-                        <input type="text" id="mname" name="mname" value="{{ old('mname', $student->mname) }}" class="field-input" required>
+                        <input type="text" id="mname" name="mname" value="{{ old('mname', $student->mname) }}" class="field-input">
                     </div>
 
                     <div class="field-group">
@@ -65,6 +65,11 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="email" class="field-label">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ old('email', $student->email ?? $student->user->email ?? '') }}" class="field-input" required>
                 </div>
 
                 <div class="field-group">

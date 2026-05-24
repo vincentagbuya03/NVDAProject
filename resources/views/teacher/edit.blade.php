@@ -28,7 +28,7 @@
                 <div class="form-grid">
                     <div class="field-group">
                         <label for="username" class="field-label">Username</label>
-                        <input type="text" id="username" name="username" value="{{ old('username', $teacher->user->username ?? '') }}" class="field-input" required>
+                        <input type="text" id="username" name="username" value="{{ old('username', optional($teacher->user)->username) }}" class="field-input" required>
                     </div>
 
                     <div class="field-group">

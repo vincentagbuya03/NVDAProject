@@ -8,11 +8,13 @@ use App\Exports\StudentsExport;
 use App\Models\Student;
 use App\Models\Degree;
 use App\Models\User;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 class StudentController extends Controller
@@ -74,32 +76,52 @@ class StudentController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Generate temporary password if not provided
         $tempPassword = $request->input('password') ?? Str::random(12);
-        
-        // Create user account
-        $user = User::create([
-            'username' => $request->input('email'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($tempPassword),
-            'role' => 'student',
-            'is_active' => true,
-            'force_password_change' => true,
-        ]);
 
-        // Create student record
-        $student = Student::create([
-            'fname' => $request->input('fname'),
-            'mname' => $request->input('mname'),
-            'lname' => $request->input('lname'),
-            'birthdate' => $request->input('birthdate'),
-            'gender' => $request->input('gender'),
-            'contact_no' => $request->input('contact_no'),
-            'degree_id' => $request->input('degree_id'),
-            'email' => $request->input('email'),
-            'address' => $request->input('address'),
-            'user_id' => $user->id,
-        ]);
+        $user = null;
+        $student = null;
+
+        DB::transaction(function () use ($request, $tempPassword, &$user, &$student) {
+            $user = User::create([
+                'username' => $request->input('email'),
+                'email' => $request->input('email'),
+                'password' => Hash::make($tempPassword),
+                'role' => 'student',
+                'is_active' => true,
+                'force_password_change' => true,
+            ]);
+
+            $student = Student::create([
+                'fname' => $request->input('fname'),
+                'mname' => $request->input('mname') ?? '',
+                'lname' => $request->input('lname'),
+                'birthdate' => $request->input('birthdate'),
+                'gender' => $request->input('gender'),
+                'contact_no' => $request->input('contact_no'),
+                'degree_id' => $request->input('degree_id'),
+                'email' => $request->input('email'),
+                'address' => $request->input('address'),
+                'user_id' => $user->id,
+            ]);
+        });
+
+        if (!$user instanceof User) {
+            Log::error('Student user creation failed (user is null after transaction).', [
+                'email' => $request->input('email'),
+                'actor_id' => Auth::id(),
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to create student account. Please try again.',
+                ], 500);
+            }
+
+            return redirect()->back()->withErrors([
+                'error' => 'Unable to create student account. Please try again.',
+            ])->withInput();
+        }
 
         $msg = "New student created: " . $request->input('fname') . " " . $request->input('lname');
         Log::info($msg, [
@@ -117,12 +139,12 @@ class StudentController extends Controller
     }
 
     public function show(string $id){
-        $student = Student::find($id);
+        $student = Student::with(['user', 'degree'])->findOrFail($id);
         return view("student.show", compact("student"));
     }
     public function edit(string $id){
         $degrees = Degree::all();
-        $student = Student::find($id);
+        $student = Student::with('user')->findOrFail($id);
         Log::info('Student edit opened', [
             'student_id' => $id,
             'actor_id' => Auth::id(),
@@ -132,18 +154,9 @@ class StudentController extends Controller
     public function update(Request $request, string $id){
 
         Log::info('Updating student with ID: ' . $id);
-        // $validation = $request->validate([
-        //     'fname' => ['required', 'string', 'min:2', 'max:50'],
-        //     'mname' => ['required', 'string', 'min:2', 'max:50'],
-        //     'lname' => ['required', 'string', 'min:2', 'max:50'],
-        //     'age' => ['required', 'integer', 'min:1'],
-        //     'gender' => ['required', 'string', 'max:50'],
-        //     'contact_no' => ['required', 'string', 'max:9'],
-        //     'degree_id' => ['required', 'integer', 'exists:degrees,id'],
-        //     'email' => ['required', 'string', 'email', 'max:255'],
-        //     'address' => ['required', 'string', 'max:255'],
-        // ]);
-        $validator = $request->validate([
+        $student = Student::with('user')->findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
             'fname' => ['required', 'string', 'min:2', 'max:50'],
             'mname' => ['nullable', 'string', 'min:0', 'max:50'],
             'lname' => ['required', 'string', 'min:2', 'max:50'],
@@ -151,21 +164,66 @@ class StudentController extends Controller
             'gender' => ['required', 'string', 'max:50'],
             'contact_no' => ['required', 'string', 'max:11'],
             'degree_id' => ['required', 'integer', 'exists:degrees,id'],
-            'email' => ['required', 'string', 'email', 'max:255' , 'unique:students,email,' . $id],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('students', 'email')->ignore($student->id),
+                Rule::unique('users', 'email')->ignore($student->user_id),
+            ],
             'address' => ['required', 'string', 'max:255'],
         ]);
 
-        $student = Student::findOrFail($id);
-        $student->fname = $request->input('fname');
-        $student->mname = $request->input('mname');
-        $student->lname = $request->input('lname');
-        $student->contact_no = $request->input('contact_no');
-        $student->degree_id = $request->input('degree_id');
-        $student->email = $request->input('email');
-        $student->address = $request->input('address');
-        $student->gender = $request->input('gender');
-        $student->birthdate = $request->input('birthdate');
-        $student->save();
+        if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $validated = $validator->validated();
+
+        DB::transaction(function () use ($student, $validated) {
+            $user = $student->user;
+
+            if (! $user) {
+                $user = User::create([
+                    'username' => $validated['email'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make(Str::random(12)),
+                    'role' => 'student',
+                    'is_active' => true,
+                    'force_password_change' => true,
+                ]);
+
+                $student->user_id = $user->id;
+            } else {
+                $user->username = $validated['email'];
+                $user->email = $validated['email'];
+                $user->role = 'student';
+                $user->is_active = true;
+                $user->save();
+            }
+
+            $student->fill([
+                'fname' => $validated['fname'],
+                'mname' => $validated['mname'] ?? '',
+                'lname' => $validated['lname'],
+                'contact_no' => $validated['contact_no'],
+                'degree_id' => $validated['degree_id'],
+                'email' => $validated['email'],
+                'address' => $validated['address'],
+                'gender' => $validated['gender'],
+                'birthdate' => $validated['birthdate'],
+            ]);
+            $student->save();
+        });
+
         Log::info('Student updated successfully: ' . $student->fname . ' ' . $student->lname);
         if ($request->ajax()) {
             return response()->json([
@@ -179,7 +237,17 @@ class StudentController extends Controller
     }
     public function destroy(Request $request, string $id){
         Log::info('Deleting student with ID: ' . $id);
-        Student::destroy($id);
+        $student = Student::with('user')->findOrFail($id);
+
+        DB::transaction(function () use ($student) {
+            if ($student->user) {
+                $student->user->delete();
+                return;
+            }
+
+            $student->delete();
+        });
+
         Log::info('Student deleted successfully: ' . $id);
         
         if ($request->ajax()) {
