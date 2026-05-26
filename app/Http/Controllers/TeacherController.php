@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
@@ -411,20 +412,15 @@ class TeacherController extends Controller
 
     private function storeTeacherProfileImage($uploadedFile, int $userId): string
     {
-        $directory = public_path('uploads/teacher-profiles');
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
         $filename = 'teacher_' . $userId . '_' . Str::uuid() . '.jpg';
-        $path = $directory . DIRECTORY_SEPARATOR . $filename;
+        $relativePath = 'teacher-profiles/' . $filename;
 
         $manager = new ImageManager(new Driver());
         $image = $manager->read($uploadedFile->getPathname())
             ->cover(400, 400);
 
-        $image->toJpeg(85)->save($path);
+        Storage::disk('public')->put($relativePath, (string) $image->toJpeg(85));
 
-        return 'uploads/teacher-profiles/' . $filename;
+        return ltrim(Storage::disk('public')->url($relativePath), '/');
     }
 }
