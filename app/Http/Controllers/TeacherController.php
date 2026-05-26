@@ -421,6 +421,6 @@ class TeacherController extends Controller
 
         Storage::disk('public')->put($relativePath, (string) $image->toJpeg(85));
 
-        return ltrim(Storage::disk('public')->url($relativePath), '/');
+        return 'storage/' . $relativePath;
     }
 }
